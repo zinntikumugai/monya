@@ -1,0 +1,5 @@
+cordovaProj/node_modules/
+cordovaProj/platforms/android/.gradle/
+cordovaProj/platforms/android/.idea/
+cordovaProj/platforms/android/CordovaLib/build/
+cordovaProj/plugins/

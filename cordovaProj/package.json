@@ -10,6 +10,7 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "dependencies": {
+    "cordova-android": "^6.3.0",
     "cordova-ios": "^4.5.4",
     "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-customurlscheme": "^4.3.0",
@@ -25,14 +26,18 @@
       "cordova-plugin-whitelist": {},
       "cordova-plugin-splashscreen": {},
       "cordova-plugin-customurlscheme": {
-        "URL_SCHEME": "monacoin"
+        "URL_SCHEME": "monacoin",
+        "ANDROID_SCHEME": " ",
+        "ANDROID_HOST": " ",
+        "ANDROID_PATHPREFIX": "/"
       },
       "cordova-plugin-inappbrowser": {},
       "cordova-plugin-statusbar": {},
       "cordova-plugin-qrscanner": {}
     },
     "platforms": [
-      "ios"
+      "ios",
+      "android"
     ]
   }
 }

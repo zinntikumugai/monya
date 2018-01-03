@@ -22,7 +22,7 @@
     <preference name="StatusBarStyle" value="default" />
     <preference name="StatusBarOverlaysWebView" value="true" />
     <platform name="android">
-      <preference name="android-minSdkVersion" value="21" />
+        <preference name="android-minSdkVersion" value="21" />
         <allow-intent href="market:*" />
         <preference name="StatusBarBackgroundColor" value="#ffffeb47" />
         <icon density="ldpi" src="res/icons/android/ldpi.png" />
@@ -107,4 +107,5 @@
     <plugin name="cordova-plugin-inappbrowser" spec="^2.0.1" />
     <plugin name="cordova-plugin-statusbar" spec="^2.4.1" />
     <plugin name="cordova-plugin-qrscanner" spec="^2.5.0" />
+    <engine name="android" spec="~6.3.0" />
 </widget>
