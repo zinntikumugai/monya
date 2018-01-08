@@ -11,15 +11,28 @@ module.exports = new Vuex.Store({
     detail:{},
     zaifPayEnabled:false,
     monappyEnabled:false,
+    monapartyEnabled:false,
     sendUrl:"",
     zaifPayInvoiceId:"",
     hasKeyPairs:false,
     openInAppBrowser:false,
-    transparency:false
+    transparency:false,
+    tokenInfo:"",
+    coinId:"",
+    addr:"",
+    sendable:false,
+    openSide:false,
+    bgClass:"sand",
+    monapartyTitle:"",
+    divisible:false,
+    includeUnconfirmedFunds:false
   },
   mutations: {
     setEntropy(state,ent) {
       state.entropy=ent;
+    },
+    openSide(state,v) {
+      state.openSide=v;
     },
     deleteEntropy(state){
       state.entropy=null
@@ -28,10 +41,14 @@ module.exports = new Vuex.Store({
       //d can be incomplete,please be careful
       state.zaifPayEnabled=d.zaifPay?d.zaifPay.enabled:false
       state.monappyEnabled=d.monappy?d.monappy.enabled:false
+      state.monapartyEnabled=d.monaparty?d.monaparty.enabled:true
       state.fiat=d.fiat||"jpy"
       state.easyUnit=d.useEasyUnit
       state.tsMode=d.absoluteTime?"absolute":"relative"
       state.openInAppBrowser=d.openInAppBrowser
+      state.bgClass=d.monaparty&&d.monaparty.bgClass||"sand"
+      state.monapartyTitle=d.monaparty&&d.monaparty.title||"monacard"
+      state.includeUnconfirmedFunds=d.includeUnconfirmedFunds
     },
     setConfirmation(state,payload){
       state.confPayload={
@@ -77,6 +94,13 @@ module.exports = new Vuex.Store({
     },
     setTransparency(state,flg) {
       state.transparency=flg
+    },
+    setTokenInfo(state,token){
+      state.tokenInfo=token.token||""
+      state.coinId=token.coinId||""
+      state.addr=token.addr||""
+      state.sendable=token.sendable||""
+      state.divisible=token.divisible||""
     },
   }
 })

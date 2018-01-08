@@ -2,6 +2,7 @@ const bcLib = require('bitcoinjs-lib')
 const axios = require('axios');
 const BigNumber = require('bignumber.js');
 const coinSelect = require('coinselect')
+const bcMsg = require('bitcoinjs-message')
 const errors = require("./errors")
 const bip39 = require("bip39")
 const coinUtil = require("./coinUtil")
@@ -24,6 +25,7 @@ module.exports=class{
     this.defaultFeeSatPerByte = opt.defaultFeeSatPerByte;
     this.confirmations=opt.confirmations||6
     this.sound=opt.sound||""
+    this.counterpartyEndpoint=opt.counterpartyEndpoint
     
     this.hdPubNode=null;
     this.lastPriceTime=0;
@@ -162,6 +164,15 @@ module.exports=class{
       return (this.addresses[addrKey]=this.hdPubNode.derive(change).derive(index).getAddress())
     }
   }
+  getPubKey(change,index){
+    if(this.dummy){return}
+    if(!this.hdPubNode){throw new Error("HDNode isn't specified.")}
+    
+    if(typeof index !=="number"){
+      throw new Error("Please specify index")
+    }
+    return this.hdPubNode.derive(change).derive(index).keyPair.getPublicKeyBuffer().toString("hex")
+  }
   getSegwitAddress(change,index){
     if(this.dummy){return}
     if(!this.hdPubNode){throw new Error("HDNode isn't specified.")}
@@ -229,7 +240,7 @@ module.exports=class{
       const feeRate = option.feeRate
 
       const txb = new bcLib.TransactionBuilder(this.network)
- 
+      
       this.getUtxos(this.getReceiveAddr().concat(this.getChangeAddr()),option.includeUnconfirmedFunds).then(res=>{
         const path=[]
         const { inputs, outputs, fee } = coinSelect(res.utxos, targets, feeRate)
@@ -247,7 +258,7 @@ module.exports=class{
 
           txb.addOutput(output.address, output.value)
         })
-       
+        
         resolve({txBuilder:txb,balance:res.balance,utxos:inputs,path,fee})
       }).catch(reject)
     })
@@ -255,16 +266,21 @@ module.exports=class{
   signTx(option){
     const entropyCipher = option.entropyCipher
     const password= option.password
-    const txb=option.txBuilder
+    let txb=option.txBuilder
     const path=option.path
     
     let seed=
-      bip39.mnemonicToSeed(
-        bip39.entropyToMnemonic(
-          coinUtil.decrypt(entropyCipher,password)
+        bip39.mnemonicToSeed(
+          bip39.entropyToMnemonic(
+            coinUtil.decrypt(entropyCipher,password)
+          )
         )
-      )
     const node = bcLib.HDNode.fromSeedBuffer(seed,this.network)
+
+    if(!txb){
+      txb=coinUtil.buildBuilderfromPubKeyTx(bcLib.Transaction.fromHex(option.hash),this.network)
+    }
+    
     for(let i=0;i<path.length;i++){
       txb.sign(i,node
                .deriveHardened(44)
@@ -275,6 +291,23 @@ module.exports=class{
               )
     }
     return txb.build()
+    
+  }
+  signMessage(m,entropyCipher,password,path){
+    const kp=bcLib.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(
+          bip39.entropyToMnemonic(
+            coinUtil.decrypt(entropyCipher,password)
+          )
+        ),this.network)
+               .deriveHardened(44)
+               .deriveHardened(this.bip44.coinType)
+               .deriveHardened(this.bip44.account)
+               .derive(path[0]|0)
+          .derive(path[1]|0).keyPair
+    return bcMsg.sign(m,kp.d.toBuffer(32),kp.compressed,this.network.messagePrefix).toString("base64")
+  }
+  verifyMessage(m,a,s){
+    return bcMsg.verify(m,a,s,this.network.messagePrefix)
   }
   pushTx(hex){
     if(this.dummy){return Promise.resolve()}
@@ -384,4 +417,39 @@ module.exports=class{
       return storage.set("labels",res)
     })
   }
+
+  callCP(method,params){
+    return axios.post(this.counterpartyEndpoint,{
+      params,
+      id:0,
+      jsonrpc:"2.0",
+      method
+    }).then(r=>{
+      if(r.data.error&&r.data.error.code){
+        throw r.data.error.data
+      }
+      return r.data
+    })
+  }
+  callCPLib(method,params){
+    return axios.post(this.counterpartyEndpoint,{
+      params:{
+        method,
+        params
+      },
+      id:0,
+      jsonrpc:"2.0",
+      method:"proxy_to_counterpartyd"
+    }).then(r=>{
+      if(r.data.error&&r.data.error.code){
+        throw r.data.error.data
+      }
+      return r.data
+    })
+  }
 }
+
+
+
+
+

@@ -1,4 +1,3 @@
-
 const Currency = require("./currency")
 const axios = require('axios');
 const coinUtil=require("../js/coinUtil")
@@ -38,7 +37,8 @@ const defaultCoins=[
       jsonPath:["data","last"],
       fiat:"jpy"
     },
-    confirmations:6
+    confirmations:6,
+    counterpartyEndpoint:"https://wallet.monaparty.me/_api"
   },{
     coinScreenName:"ビットコイン",
     coinId:"btc",
@@ -239,4 +239,14 @@ exports.init =customCoins=>{
 }
 exports.addCurrency=customCoin=>{
   coins[customCoin.coinId]=customCoin
+}
+exports.monapartyTitle={
+  "monacard":{
+    url:{
+      "detail":"https://card.mona.jp/api/card_detail.php?assets=",
+      "list":"https://card.mona.jp/api/card_list.php"
+    },
+    name:"Monacard"
+  }
+  
 }

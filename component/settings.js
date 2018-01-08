@@ -1,4 +1,5 @@
 const storage=require("../js/storage")
+const currencyList = require("../js/currencyList")
 module.exports=require("./settings.html")({
   data(){
     return {
@@ -19,13 +20,22 @@ module.exports=require("./settings.html")({
           enabled:false,
           myUserId:""
         },
-        openInAppBrowser:false
-      }
+        openInAppBrowser:false,
+        monaparty:{
+          enabled:false,
+          bgClass:"sand",
+          title:"monacard"
+        }
+      },
+      monapartyTitleList:currencyList.monapartyTitle
     }
   },
   methods:{
     goToShowPassphrase(){
       this.$emit("push",require("./showPassphrase.js"))
+    },
+    goToSign(){
+      this.$emit("push",require("./sign.js"))
     },
     goToSetPassword(){
       this.$emit("push",require("./setPassword.js"))
