@@ -24,16 +24,16 @@ module.exports=require("./sendToken.html")({
       this.loading=true
       const cur = currencyList.get(this.coinId)
       let hex=""
-      let qty=(new BigNumber(this.sendAmount)).toNumber()
+      let qty=(new BigNumber(this.sendAmount))
       if(this.divisible){
-        qty*=100000000
+        qty=qty.times(100000000)
       }
       cur.callCPLib("create_send",{
         source:cur.getAddress(0,this.addressIndex|0),
         allow_unconfirmed_inputs:this.$store.state.includeUnconfirmedFunds,
         destination:this.dest,
         asset:this.token.toUpperCase(),
-        quantity:qty,
+        quantity:qty.toNumber(),
         memo:this.sendMemo,
         fee_per_kb:cur.defaultFeeSatPerByte*1024,
         disable_utxo_locks:true,
@@ -41,7 +41,7 @@ module.exports=require("./sendToken.html")({
         extended_tx_info:true,
         pubkey:[cur.getPubKey(0,this.addressIndex|0)]
       }).then(res=>{
-        hex=res.result.tx_hex
+        hex=res.tx_hex
         return storage.get("keyPairs")
       }).then(cipher=>{
         const signedTx=cur.signTx({
@@ -53,7 +53,7 @@ module.exports=require("./sendToken.html")({
         return cur.callCP("broadcast_tx",{signed_tx_hex:signedTx.toHex()})
       }).then(r=>{
         this.loading=false
-        this.$ons.notification.alert("Successfully sent transaction.Transaction ID is: "+r.result)
+        this.$ons.notification.alert("Successfully sent transaction.Transaction ID is: "+r)
       }).catch(e=>{
         this.loading=false
         this.$ons.notification.alert("Error: "+e.message)
