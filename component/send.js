@@ -18,13 +18,14 @@ module.exports=require("./send.html")({
       messageToShow:"",
       txLabel:"",
       verifyResult:true,
-      signature:false
+      signature:false,
+      utxoStr:""
     }
   },
   store:require("../js/store.js"),
   methods:{
     confirm(){
-      if(!this.address||!this.coinType||isNaN(this.amount*1)||(this.amount*1)<=0||!this.feePerByte||!coinUtil.isValidAddress(this.address)||(this.message&&Buffer.from(this.message, 'utf8').length>40)){
+      if(!this.address||!this.coinType||isNaN(this.amount*1)||(this.amount*1)<=0||!this.feePerByte||!coinUtil.getAddrVersion(this.address)||(this.message&&Buffer.from(this.message, 'utf8').length>40)){
         
         this.$ons.notification.alert("正しく入力してね！")
         return;
@@ -36,7 +37,8 @@ module.exports=require("./send.html")({
         feePerByte:this.feePerByte,
         message:this.message,
         coinType:this.coinType,
-        txLabel:this.txLabel
+        txLabel:this.txLabel,
+        utxoStr:this.utxoStr
       })
       this.$emit("push",require("./confirm.js"))
     },
@@ -79,7 +81,9 @@ module.exports=require("./send.html")({
             return
           }else{
             currencyList.eachWithPub((cur)=>{
-              if(cur.prefixes.indexOf(this.address[0])>=0){
+              const ver = coinUtil.getAddrVersion(this.address)
+              if(ver===cur.network.pubKeyHash||
+                ver===cur.network.scriptHash){
                 this.possibility.push({
                   name:cur.coinScreenName,
                   coinId:cur.coinId

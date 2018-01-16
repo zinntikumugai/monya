@@ -3,3 +3,10 @@ cordovaProj/platforms/android/.gradle/
 cordovaProj/platforms/android/.idea/
 cordovaProj/platforms/android/CordovaLib/build/
 cordovaProj/plugins/
+chrome_extension/dist/
+node_modules
+#*#
+*~
+npm-debug.log*
+.DS_Store
+.*

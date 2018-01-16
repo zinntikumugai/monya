@@ -28,7 +28,7 @@ module.exports=require("./sign.html")({
         "req-signature":this.signature
       }))
       }).catch(e=>{
-        this.$ons.notification.alert(e.message||"Error.Please try again")
+        this.$store.commit("setError",e.message||"Unknown")
       })
     },
     verify(){
@@ -51,7 +51,9 @@ module.exports=require("./sign.html")({
       if(this.address){
         
         currencyList.eachWithPub((cur)=>{
-          if(cur.prefixes.indexOf(this.address[0])>=0){
+          const ver = coinUtil.getAddrVersion(this.address)
+          if(ver===cur.network.pubKeyHash||
+             ver===cur.network.scriptHash){
             this.possibility.push({
               name:cur.coinScreenName,
               coinId:cur.coinId

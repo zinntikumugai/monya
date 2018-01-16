@@ -20,6 +20,7 @@ module.exports=require("./confirm.html")({
       signedHex:null,
       isEasy:false,
       coinType:"",
+      utxoStr:"",
       ready:false,
       txb:null,
       addressPath:null,
@@ -28,12 +29,13 @@ module.exports=require("./confirm.html")({
       insufficientFund:false,
       loading:true,
       incorrect:false,
-      paySound:false
+      paySound:false,
+      hash:""
     }
   },
   store:require("../js/store.js"),
   mounted(){
-    ["address","amount","fiat","feePerByte","message","coinType","txLabel"].forEach(v=>{
+    ["address","amount","fiat","feePerByte","message","coinType","txLabel","utxoStr"].forEach(v=>{
       this[v]=this.$store.state.confPayload[v]
     })
     this.cur=currencyList.get(this.coinType)
@@ -69,7 +71,8 @@ module.exports=require("./confirm.html")({
         return cur.buildTransaction({
           targets,
           feeRate:this.feePerByte,
-          includeUnconfirmedFunds:data.includeUnconfirmedFunds
+          includeUnconfirmedFunds:data.includeUnconfirmedFunds,
+          utxoStr:this.utxoStr
         })
       }).then(d=>{
         this.fee=(new BigNumber(d.fee)).divToInt(100000000)
@@ -88,7 +91,7 @@ module.exports=require("./confirm.html")({
         if(e instanceof errors.NoSolutionError){
           this.insufficientFund=true
         }else{
-          this.$ons.notification.alert("Error:"+e.message)
+          this.$store.commit("setError",e.message)
         }
       })
     }
@@ -109,7 +112,8 @@ module.exports=require("./confirm.html")({
           txBuilder:this.txb,
           path:this.path
         })
-        return cur.pushTx(finalTx.toHex())
+        this.hash=finalTx.toHex()
+        return cur.pushTx(this.hash)
       }).then((res)=>{
         cur.saveTxLabel(res.txid,{label:this.txLabel,price:parseFloat(this.price)})
         this.$store.commit("setFinishNextPage",{page:require("./home.js"),infoId:"sent",payload:{
@@ -121,7 +125,8 @@ module.exports=require("./confirm.html")({
       }).catch(e=>{
         this.loading=false
         if(e.request){
-          this.$ons.notification.alert(e.request.responseText||"Network Error.Please try again")
+          this.$store.commit("setError",e.request.responseText||"Network Error.Please try again")
+          
         }else{
           this.incorrect=true
           this.ready=true

@@ -3,8 +3,9 @@ const axios = require('axios');
 const BigNumber = require('bignumber.js');
 const coinSelect = require('coinselect')
 const bcMsg = require('bitcoinjs-message')
-const errors = require("./errors")
 const bip39 = require("bip39")
+const qs= require("qs")
+const errors = require("./errors")
 const coinUtil = require("./coinUtil")
 const storage = require("./storage")
 module.exports=class{
@@ -20,7 +21,6 @@ module.exports=class{
     this.price = opt.price;
     this.dummy=!!opt.dummy
     this.icon = opt.icon;
-    this.prefixes=opt.prefixes;
     this.bip21=opt.bip21;
     this.defaultFeeSatPerByte = opt.defaultFeeSatPerByte;
     this.confirmations=opt.confirmations||6
@@ -45,7 +45,7 @@ module.exports=class{
   getAddressProp(propName,address){
     if(this.dummy){return Promise.resolve()}
     return axios({
-      url:this.apiEndpoint+"/addr/"+address+"/"+propName,
+      url:this.apiEndpoint+"/addr/"+address+(propName?"/"+propName:""),
       json:true,
       method:"GET"}).then(res=>{
         return res.data
@@ -119,35 +119,42 @@ module.exports=class{
   }
   
   getUtxos(addressList,includeUnconfirmedFunds=false){
-    return axios({
-      url:this.apiEndpoint+"/addrs/"+addressList.join(",")+"/utxo",
-      json:true,
-      method:"GET"}).then(res=>{
-        const v=res.data
-        const utxos=[]
-        let bal=0;
-        let unconfirmed=0;
-        for(let i=0;i<v.length;i++){
-          bal+=v[i].amount
-          const u=v[i]
-          if(includeUnconfirmedFunds||u.confirmations!==0){
-            utxos.push({
-              value:(new BigNumber(u.amount)).times(100000000).round().toNumber(),
-              txId:u.txid,
-              vout:u.vout,
-              address:u.address,
-              confirmations:u.confirmations
-            })
-          }else{
-            unconfirmed+=u.amount
-          }
+    let promise
+    if(typeof(addressList[0])==="string"){//address mode
+      promise=axios({
+        url:this.apiEndpoint+"/addrs/"+addressList.join(",")+"/utxo",
+        json:true,
+        method:"GET"})
+    }else{// manual utxo mode
+      promise=Promise.resolve({data:addressList})
+    }
+    
+    return promise.then(res=>{
+      const v=res.data
+      const utxos=[]
+      let bal=0;
+      let unconfirmed=0;
+      for(let i=0;i<v.length;i++){
+        bal+=v[i].amount
+        const u=v[i]
+        if(includeUnconfirmedFunds||u.confirmations!==0){
+          utxos.push({
+            value:(new BigNumber(u.amount)).times(100000000).round().toNumber(),
+            txId:u.txid,
+            vout:u.vout,
+            address:u.address,
+            confirmations:u.confirmations
+          })
+        }else{
+          unconfirmed+=u.amount
         }
-        return {
-          balance:bal,
-          utxos,
-          unconfirmed
-        }
-      })
+      }
+      return {
+        balance:bal,
+        utxos,
+        unconfirmed
+      }
+    })
   }
   
   getAddress(change,index){
@@ -211,6 +218,10 @@ module.exports=class{
   }
   getPrice(){
     return new Promise((resolve, reject) => {
+      if(!this.price){
+        return resolve(0)
+      }
+      
       if(this.lastPriceTime+1000*60<Date.now()){
         axios({
           method:this.price.method||"get",
@@ -220,7 +231,11 @@ module.exports=class{
           let temp = res.data
           if(this.price.json){
             this.price.jsonPath.forEach(v=>{
-              temp = temp[v]
+              if(v<0){
+                temp = temp[temp.length+v]
+              }else{
+                temp = temp[v]
+              }
             })
           }
           this.priceCache=temp
@@ -240,8 +255,15 @@ module.exports=class{
       const feeRate = option.feeRate
 
       const txb = new bcLib.TransactionBuilder(this.network)
+
+      let param
+      if(option.utxoStr){
+        param=JSON.parse(option.utxoStr)
+      }else{
+        param=this.getReceiveAddr().concat(this.getChangeAddr())
+      }
       
-      this.getUtxos(this.getReceiveAddr().concat(this.getChangeAddr()),option.includeUnconfirmedFunds).then(res=>{
+      this.getUtxos(param,option.includeUnconfirmedFunds).then(res=>{
         const path=[]
         const { inputs, outputs, fee } = coinSelect(res.utxos, targets, feeRate)
         if (!inputs || !outputs) throw new errors.NoSolutionError()
@@ -279,6 +301,17 @@ module.exports=class{
 
     if(!txb){
       txb=coinUtil.buildBuilderfromPubKeyTx(bcLib.Transaction.fromHex(option.hash),this.network)
+
+      for(let i=0;i<txb.inputs.length;i++){
+      txb.sign(i,node
+               .deriveHardened(44)
+               .deriveHardened(this.bip44.coinType)
+               .deriveHardened(this.bip44.account)
+               .derive(path[0][0]|0)
+               .derive(path[0][1]|0).keyPair
+              )
+      }
+      return txb.build()
     }
     
     for(let i=0;i<path.length;i++){
@@ -313,7 +346,7 @@ module.exports=class{
     if(this.dummy){return Promise.resolve()}
     return axios({
       url:this.apiEndpoint+"/tx/send",
-      data:{rawtx:hex},
+      data:qs.stringify({rawtx:hex}),
       method:"POST"}).then(res=>{
         return res.data
       })
@@ -323,13 +356,13 @@ module.exports=class{
     if(this.dummy){return Promise.resolve()}
     return axios({
       url:this.apiEndpoint+"/addrs/txs",
-      data:{
+      data:qs.stringify({
         noAsm:1,
         noScriptSig:1,
         noSpent:0,
         from,to,
         addrs:this.getReceiveAddr().concat(this.getChangeAddr()).join(",")
-      },
+      }),
       method:"POST"}).then(res=>{
         return res.data
       })
@@ -368,10 +401,12 @@ module.exports=class{
       if(txs){
         payload.price&&(txs.price=payload.price)
         payload.label&&(txs.label=payload.label)
+        payload.read&&(txs.read=true)
       }else{
         res[this.coinId][txId]={
           price:payload.price||0,
-          label:payload.label||""
+          label:payload.label||"",
+          read:true
         }
       }
       return storage.set("txLabels",res)
@@ -447,9 +482,25 @@ module.exports=class{
       return r.data.result
     })
   }
+  sweep(priv,addr,fee){
+    const keyPair=bcLib.ECPair.fromWIF(priv,this.network)
+    return this.getUtxos([keyPair.getAddress()]).then(r=>{
+      const txb = new bcLib.TransactionBuilder(this.network)
+      r.utxos.forEach((v,i)=>{
+        txb.addInput(v.txId,v.vout)
+      })
+      txb.addOutput(addr,(new BigNumber(r.balance)).minus(fee).times(100000000).toNumber())
+      r.utxos.forEach((v,i)=>{
+        txb.sign(i,keyPair)
+      })
+      
+      return this.pushTx(txb.build().toHex())
+    })
+  }
+  getBlocks(){
+    return axios({
+        url:this.apiEndpoint+"/blocks?limit=3",
+        json:true,
+      method:"GET"}).then(r=>r.data.blocks)
+  }
 }
-
-
-
-
-

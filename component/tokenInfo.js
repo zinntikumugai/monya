@@ -14,7 +14,7 @@ module.exports=require("./tokenInfo.html")({
   store:require("../js/store.js"),
   methods:{
     sendToken(){
-      this.$store.commit("setTokenInfo",{token:this.token.toUpperCase(),coinId:this.coinId,sendable:this.sendable,divisible:this.asset.divisible})
+      this.$store.commit("setTokenInfo",{token:this.token,coinId:this.coinId,sendable:this.sendable,divisible:this.asset.divisible})
       this.$emit("push",require("./sendToken.js"))
     }
   },
@@ -33,12 +33,18 @@ module.exports=require("./tokenInfo.html")({
     const title = titleList.get(this.titleId)
     title.getToken(this.token).then(r=>{
       this.asset=r.asset[0]
-      this.history=r.history
       this.card=r.card[0]
       this.loading=false
+      if(this.asset){
+        return title.getTokenHistory(this.asset.asset)
+      }else{
+        return {}
+      }
+    }).then(r=>{
+      this.history=r
     }).catch(e=>{
-      this.loading=false
-      this.$ons.notification.alert("Error: "+e.message)
-    })
+          this.loading=false
+          this.$store.commit("setError",e.message)
+        })
   }      
 })

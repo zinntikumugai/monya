@@ -30,10 +30,16 @@ ons-list-item{
     text-align:right;
   }
 }
+
+.toolbar-button .ons-icon{
+  vertical-align:top;
+}
+
 ons-dialog .dialog{
     max-height:100%;
     max-width:100%;
-    overflow:scroll;
+    overflow-y:scroll;
+    overflow-y:auto;
   
 }
 .shake{
@@ -178,20 +184,25 @@ ons-dialog .dialog{
     .hasPrice{
       color:#4caf50;
     }
+    .inmatureConfirmation{
+      color:#ff0000;
+    }
+    .unread{
+      color:#ff9900;
+    }
   }
   .container{
     text-align:center;
   }
 }
-[data-page="showLabel"],[data-page="receive"],[data-page="history"],[data-page="invoice"]{
+[data-page="showLabel"],[data-page="sweep"],[data-page="receive"],[data-page="history"],[data-page="invoice"]{
   #currencySelector{
     width:100%;
     margin:none;
     padding:none;
     .currencyIcon{
-      margin:3px;
-      width:$currencySelectorHeight - 3px;
-      height:$currencySelectorHeight - 3px;
+      width:$currencySelectorHeight;
+      height:$currencySelectorHeight;
       background-position:center center;
       background-size:contain;
       background-repeat:no-repeat;
@@ -258,6 +269,9 @@ ons-dialog .dialog{
 [data-page="invoice"]{
   .currencyIcon.monappy{
     background-image:url(../res/monappy.png);
+  }
+  .monappyNotExist{
+    background-color:#fdc;
   }
 }
 $iconSize:100px;
@@ -668,6 +682,12 @@ $zaifPayLogoSize:200px;
     }
   }
 }
+[data-page="settings"]{
+  .monappyNotExist{
+    background-color:#fdc;
+  }
+  
+}
 [data-page="tokenInfo"],[data-page="monaparty"],[data-page="sendToken"],[data-page="makeToken"]{
   ons-toolbar{
     background:linear-gradient(to bottom, #9e3429 0%,#6b2f27 100%);
@@ -699,6 +719,12 @@ $zaifPayLogoSize:200px;
     background-image:url(../res/realmona.png);
     background-position:right bottom;
     background-repeat:no-repeat;
+  }
+  ons-navigator.white & .page__background{
+    background-color:#fff;
+  }
+  ons-navigator.blue & .page__background{
+    background-color:#123456;
   }
   ons-input{
     width:100%;

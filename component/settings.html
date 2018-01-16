@@ -7,6 +7,7 @@
       <v-ons-list-item modifier="tappable chevron" @click="goToShowPassphrase"><div class="center">パスフレーズの表示</div></v-ons-list-item>
       <v-ons-list-item modifier="tappable chevron" @click="goToSetPassword"><div class="center">パスワードを変更</div></v-ons-list-item>
       <v-ons-list-item modifier="tappable chevron" @click="goToEditOrder"><div class="center">メニューの管理</div></v-ons-list-item>
+      <v-ons-list-item modifier="tappable chevron" @click="goToSweep"><div class="center">スイープ</div></v-ons-list-item>
       <v-ons-list-item modifier="tappable chevron" @click="resetDialog=true"><div class="center">全データ消去</div></v-ons-list-item>
 
       <v-ons-list-header>お金</v-ons-list-header>
@@ -75,7 +76,7 @@
       <div v-show="d.monappy.enabled">
         <v-ons-list-item>
           <div class="center">あなたのMonappy ID</div>
-          <div class="right"><span class="atmark">@</span><v-ons-input v-model="d.monappy.myUserId" placeholder="Monappy Id" @change="save"></v-ons-input></div>
+          <div class="right"><span class="atmark">@</span><v-ons-input v-model="d.monappy.myUserId" placeholder="Monappy Id" @change="changeMonappy" @input="monappyNotExist=false" :class="{monappyNotExist:monappyNotExist}"></v-ons-input></div>
         </v-ons-list-item>
         
       </div>
@@ -92,6 +93,9 @@
               <option value="sand">砂</option>
               <option value="washi">和紙</option>
               <option value="realmona">リアルモナコインちゃん</option>
+              <option value="leather">革</option>
+              <option value="white">単色:白</option>
+              <option value="blue">単色:青</option>
           </v-ons-select>
           </div>
         </v-ons-list-item>

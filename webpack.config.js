@@ -14,6 +14,15 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.js$/,
+        exclude: /node_modules\/(?!(bech32))/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['env']
+          }
+        }
+        },{
         test: /\.scss$/,
         use:[{
           loader: "style-loader" // creates style nodes from JS strings
@@ -48,6 +57,7 @@ module.exports = {
     new Uglify({
       uglifyOptions:{
         mangle:{
+          safari10: true,
           reserved:['BigInteger','ECPair','Point']
         }
       }

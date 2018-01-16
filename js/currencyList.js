@@ -25,12 +25,11 @@ const defaultCoins=[
       },
       pubKeyHash: 50,// M
       scriptHash: 55,// P new scripthash
-      wif: 176,//new wif
+      wif: 178,//new wif
       bech32:"mona"
     },
     sound:require("../res/coins/paySound/mona.m4a"),
     enableSegwit:false,
-    prefixes:["M","P"],
     price:{
       url:"https://public.bitbank.cc/mona_jpy/ticker",
       json:true,
@@ -64,7 +63,6 @@ const defaultCoins=[
       wif: 128
     },
     enableSegwit:false,
-    prefixes:["1","3"],
     price:{
       url:"https://public.bitbank.cc/btc_jpy/ticker",
       json:true,
@@ -87,7 +85,7 @@ const defaultCoins=[
     icon:require("../res/coins/zny.png"),
     defaultAPIEndpoint:"https://zenyinsight.tomotomo9696.xyz/api",
     network:{
-      messagePrefix: '\x18Bitcoin Signed Message:\n',
+      messagePrefix: '\x18BitZeny Signed Message:\n',
       bip32: {
         public: 0x0488b21e,
         
@@ -98,11 +96,10 @@ const defaultCoins=[
       wif: 128
     },
     enableSegwit:false,
-    prefixes:["Z","3"],
     price:{
       url:coinUtil.proxyUrl("https://www.coingecko.com/price_charts/bitzeny/jpy/24_hours.json"),
       json:true,
-      jsonPath:["stats",0,1],
+      jsonPath:["stats",-1,1],
       fiat:"jpy"
     },
     sound:require("../res/coins/paySound/zny.m4a")
@@ -132,7 +129,6 @@ const defaultCoins=[
       bech32:"lc1"
     },
     enableSegwit:false,
-    prefixes:["L","3"],
     price:{
       url:"https://public.bitbank.cc/ltc_btc/ticker",
       json:true,
@@ -161,16 +157,14 @@ const defaultCoins=[
         private: 0x0488ade4
       },
       pubKeyHash: 36,// F
-      scriptHash: 17,// 3
-      wif: 164,//not known but i put it 36+128
-      bech32:"fuji1"
+      scriptHash: 16,// 7
+      wif: 164
     },
     enableSegwit:false,
-    prefixes:["F","7"],
     price:{
       url:coinUtil.proxyUrl("https://www.coingecko.com/price_charts/fujicoin/jpy/24_hours.json"),
       json:true,
-      jsonPath:["stats",0,1],
+      jsonPath:["stats",-1,1],
       fiat:"jpy"
     },
     confirmations:6
