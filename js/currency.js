@@ -79,8 +79,8 @@ module.exports=class{
     }
     return false
   }
-  getReceiveBalance(){
-    return this.getUtxos(this.getReceiveAddr())
+  getReceiveBalance(includeUnconfirmedFunds){
+    return this.getUtxos(this.getReceiveAddr(),includeUnconfirmedFunds)
   }
   getChangeBalance(includeUnconfirmedFunds){
     return this.getUtxos(this.getChangeAddr(),includeUnconfirmedFunds).then(d=>{
@@ -112,7 +112,7 @@ module.exports=class{
   
   getWholeBalanceOfThisAccount(){
     if(this.dummy){return Promise.resolve()}
-    return Promise.all([this.getReceiveBalance(),this.getChangeBalance(true)]).then(vals=>({
+    return Promise.all([this.getReceiveBalance(true),this.getChangeBalance(true)]).then(vals=>({
       balance:vals[0].balance+vals[1].balance/100000000,
       unconfirmed:vals[0].unconfirmed+vals[1].unconfirmed/100000000
     }))
@@ -137,7 +137,7 @@ module.exports=class{
       for(let i=0;i<v.length;i++){
         bal+=v[i].amount
         const u=v[i]
-        if(includeUnconfirmedFunds||u.confirmations!==0){
+        if(includeUnconfirmedFunds||u.confirmations){
           utxos.push({
             value:(new BigNumber(u.amount)).times(100000000).round().toNumber(),
             txId:u.txid,
@@ -275,7 +275,7 @@ module.exports=class{
         })
         outputs.forEach(output => {
           if (!output.address) {
-            output.address = this.getAddress(1,this.changeIndex+1)
+            output.address = this.getAddress(1,(this.changeIndex+1)%coinUtil.GAP_LIMIT_FOR_CHANGE)
           }
 
           txb.addOutput(output.address, output.value)
