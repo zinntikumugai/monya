@@ -1,21 +1,20 @@
 const currencyList = require("../js/currencyList")
-const BigNumber = require('bignumber.js');
-const storage = require("../js/storage")
 const titleList = require("../js/titleList")
 
-module.exports=require("./makeToken.html")({
+module.exports=require("./dexOrder.html")({
   data(){
     return {
-    token:"",
-    coinId:this.$store.state.coinId,
-    labels:[],
-    addressIndex:0,
-    loading:false,
-      divisible:false,
+      coinId:this.$store.state.coinId,
+      labels:[],
+      addressIndex:0,
+      loading:false,
       password:"",
-      feePerByte:"",
-      description:"",
-      transferDest:""
+      feePerByte:200,
+      getAmount:0,
+      giveAmount:0,
+      giveToken:"",
+      getToken:""
+
     }
   },
   store:require("../js/store.js"),
@@ -23,24 +22,21 @@ module.exports=require("./makeToken.html")({
     
     createTx(){
       this.loading=true
-      titleList.get(this.titleId).createIssuance({
-        divisible:this.divisible,
-        amount:this.amount,
+      titleList.get(this.titleId).createOrder({
         addressIndex:this.addressIndex,
-        token:this.token,
         includeUnconfirmedFunds:this.$store.state.includeUnconfirmedFunds,
         password:this.password,
-        memo:this.sendMemo,
         feePerByte:this.feePerByte,
-        description:this.description,
-        transferDest:this.transferDest
+        giveAmt:this.giveAmount,
+        giveToken:this.giveToken,
+        getAmt:this.getAmount,
+        getToken:this.getToken
       }).then(r=>{
         this.loading=false
         this.$ons.notification.alert("Successfully sent transaction.Transaction ID is: "+r)
       }).catch(e=>{
         this.loading=false
         this.$store.commit("setError",e.message)
-
       })
     },
     
@@ -48,12 +44,6 @@ module.exports=require("./makeToken.html")({
       currencyList.get(this.coinId).getLabels().then(res=>{
         this.$set(this,"labels",res)
       })
-    }
-  },
-  mounted(){
-    this.getAddrLabel()
-    if(window.StatusBar){
-      window.StatusBar.styleLightContent();
     }
   },
   computed:{
@@ -65,6 +55,12 @@ module.exports=require("./makeToken.html")({
         this.$store.commit("setTitle",v)
         return v
       }
+    }
+  },
+  mounted(){
+    this.getAddrLabel()
+    if(window.StatusBar){
+      window.StatusBar.styleLightContent();
     }
   }
 })

@@ -94,7 +94,7 @@ module.exports=require("./navigator.html")({
         if(res.isCoinAddress&&res.isPrefixOk&&res.isValidAddress){
           this.$store.commit("setSendUrl",res.url)
           this.pageStack.push(require("./send.js"))
-        }else{
+        }else if(res.url){
           this.$ons.notification.alert(res.url)
         }
       })
@@ -102,6 +102,9 @@ module.exports=require("./navigator.html")({
   },
   watch:{
     pageStack(){
+      if(this.$ons.platform.isIOS()&&window.StatusBar&&this.pageStack.length===1){
+        window.StatusBar.styleDefault();
+      }
       this.$store.commit("setTransparency",false)
     }
   },

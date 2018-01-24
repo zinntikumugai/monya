@@ -69,6 +69,10 @@ module.exports=require("./monaparty.html")({
     goToMakeToken(){
       this.$store.commit("setTokenInfo",{coinId:titleList.get(this.titleId).cpCoinId})
       this.$emit("push",require("./makeToken.js"))
+    },
+    goToDex(){
+      this.$store.commit("setTokenInfo",{coinId:titleList.get(this.titleId).cpCoinId})
+      this.$emit("push",require("./dexOrder.js"))
     }
   },
   computed:{
@@ -87,5 +91,8 @@ module.exports=require("./monaparty.html")({
     titleList.init([])
     this.titles=titleList.getTitleList()
     this.getMyAssets()
+    if(window.StatusBar){
+      window.StatusBar.styleLightContent();
+    }
   }
 })

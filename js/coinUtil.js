@@ -107,23 +107,27 @@ exports.decryptKeys=(option)=>new Promise((resolve, reject) => {
 });
   
 exports.copy=data=>{
-  const temp = document.createElement('div');
+  if (window.cordova) {
+    window.cordova.plugins.clipboard.copy(data)
+  }else{
+    const temp = document.createElement('div');
 
-  temp.textContent = data;
+    temp.textContent = data;
 
-  const s = temp.style;
-  s.position = 'fixed';
-  s.left = '-100%';
-  s.userSelect="text"
+    const s = temp.style;
+    s.position = 'fixed';
+    s.left = '-100%';
+    s.userSelect="text"
 
-  document.body.appendChild(temp);
-  document.getSelection().selectAllChildren(temp);
+    document.body.appendChild(temp);
+    document.getSelection().selectAllChildren(temp);
 
-  const result = document.execCommand('copy');
+    const result = document.execCommand('copy');
 
-  document.body.removeChild(temp);
-  // true なら実行できている falseなら失敗か対応していないか
-  return result;
+    document.body.removeChild(temp);
+    // true なら実行できている falseなら失敗か対応していないか
+    return result;
+  }
 }
 
 exports.getBip21=(bip21Urn,address,query)=>{
@@ -177,6 +181,7 @@ exports.parseUrl=url=>new Promise((resolve,reject)=>{
       ret.amount=raw.searchParams.get("amount")
       ret.opReturn=raw.searchParams.get("req-opreturn")
       ret.signature=raw.searchParams.get("req-signature")
+      ret.utxo=raw.searchParams.get("req-utxo")
     }
   })
   
@@ -194,10 +199,12 @@ exports.shortWait=()=>new Promise(r=>{
   setTimeout(r,150)
 })
 exports._url=""
-exports._urlCb=()=>{}
+exports._urlCb=null
 exports.queueUrl=url=>{
   exports._url=url
-  exports._urlCb(url)
+  if(exports.hasInitialized){
+    exports._urlCb&&exports._urlCb(exports._url)
+  }
 }
 exports.getQueuedUrl=()=>{
   return exports._url
@@ -213,6 +220,13 @@ exports.setUrlCallback=cb=>{
   }
 }
 exports.hasInitialized=false
+exports.setInitialized=(flag)=>{
+  
+  if(exports.hasInitialized!==flag){
+    exports.hasInitialized=flag
+    exports._urlCb&&exports._urlCb(exports._url)
+  }
+}
 
 exports.buildBuilderfromPubKeyTx=(transaction,network)=>{
   let txb = new bcLib.TransactionBuilder(network)

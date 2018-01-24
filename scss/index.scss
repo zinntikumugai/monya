@@ -443,7 +443,11 @@ $iconSize:100px;
     text-align:center;
   }
 }
-
+[data-page="setPassword"]{
+  ons-input{
+    width:100%
+  }
+}
 $passwordHeight:35px;
 [data-page="login"]{
   .wrap{
@@ -598,6 +602,9 @@ $zaifPayLogoSize:200px;
   }
 }
 [data-page="monaparty"]{
+  .toolbar__right {
+    width: 50%;
+  }
   #wrap{
     margin:10px;
     background-color: white;
@@ -688,7 +695,7 @@ $zaifPayLogoSize:200px;
   }
   
 }
-[data-page="tokenInfo"],[data-page="monaparty"],[data-page="sendToken"],[data-page="makeToken"]{
+[data-page="tokenInfo"],[data-page="monaparty"],[data-page="sendToken"],[data-page="makeToken"],[data-page="dexOrder"]{
   ons-toolbar{
     background:linear-gradient(to bottom, #9e3429 0%,#6b2f27 100%);
     ons-icon,.toolbar__title,.back-button__icon{

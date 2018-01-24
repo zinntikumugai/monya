@@ -84,6 +84,7 @@ const defaultCoins=[
     defaultFeeSatPerByte:200,
     icon:require("../res/coins/zny.png"),
     defaultAPIEndpoint:"https://zenyinsight.tomotomo9696.xyz/api",
+    apiEndpoints:["https://zenyinsight.tomotomo9696.xyz/api","https://zeny.insight.monaco-ex.org/api"],
     network:{
       messagePrefix: '\x18BitZeny Signed Message:\n',
       bip32: {
@@ -126,7 +127,7 @@ const defaultCoins=[
       pubKeyHash: 48,// L
       scriptHash: 5,// 3
       wif: 176,
-      bech32:"lc1"
+      bech32:"lc"
     },
     enableSegwit:false,
     price:{
@@ -168,6 +169,40 @@ const defaultCoins=[
       fiat:"jpy"
     },
     confirmations:6
+  },{//key = coinId that is lowercase ticker symbol
+    coinScreenName:"モナコイン(テストネット)",
+    coinId:"tmona",
+    unit:"MONA(Testnet)",
+    unitEasy:"モナ(テストネット)",
+    bip44:{
+      coinType:22,//from slip44
+      account:0
+    },
+    bip21:"testnetmonacoin",
+    defaultFeeSatPerByte:200,//will implement dynamic fee
+    icon:require("../res/coins/tmona.png"),
+    defaultAPIEndpoint:"https://testnet-mona.insight.monaco-ex.org/insight-api-monacoin",
+    network:{
+      messagePrefix: '\x19Monacoin Signed Message:\n',
+      bip32: {
+        public: 0x043587cf,
+        private: 0x04358394
+      },
+      pubKeyHash: 111,// M
+      scriptHash: 117,// P new scripthash
+      wif: 239,//new wif
+      bech32:"tmona"
+    },
+    sound:require("../res/coins/paySound/mona.m4a"),
+    enableSegwit:false,
+    price:{
+      url:"https://public.bitbank.cc/mona_jpy/ticker",
+      json:true,
+      jsonPath:["data","last"],
+      fiat:"jpy"
+    },
+    confirmations:6,
+    counterpartyEndpoint:"https://wallet-testnet.monaparty.me/_api"
   }
 ]
 

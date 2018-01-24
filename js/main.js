@@ -1,7 +1,7 @@
 require("../scss/index.scss")
 require('../dist/onsenui/css/onsenui.min.css')
 require('../dist/onsenui/css/onsen-css-components.min.css')
-const Vue = require("vue/dist/vue.runtime")
+const Vue = require("vue/dist/vue.runtime.min")
 //const VueOnsen = require("vue-onsenui")
 const Vuex = require("vuex")
 
@@ -31,6 +31,13 @@ exports.vm= new Vue({
   },
   store:require("../js/store.js"),
   beforeMount() {
+    if(this.$ons.platform.isAndroid()&&window.StatusBar){
+      window.StatusBar.backgroundColorByHexString("#60000000");
+      window.StatusBar.overlaysWebView(true)
+      window.StatusBar.styleLightContent()
+      document.body.classList.add("ons-force-status-bar")
+    }
+    this.$ons.enableAutoStatusBarFill()
     const html = document.documentElement;
     if (this.$ons.platform.isIPhoneX()) {
       html.setAttribute('onsflag-iphonex-portrait', '');
