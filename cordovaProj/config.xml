@@ -111,4 +111,5 @@
     <plugin name="cordova-plugin-keychain-touch-id" spec="^3.2.1" />
     <plugin name="cordova-plugin-qrscanner-monya" spec="^2.5.4" />
     <plugin name="cordova-clipboard" spec="^1.1.1" />
+    <engine name="android" spec="~6.4.0" />
 </widget>
