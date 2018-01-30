@@ -208,7 +208,7 @@ const defaultCoins=[
     unit:"KOTO",
     unitEasy:"コト",
     bip44:{
-      coinType:2001,
+      coinType:2004,
       account:0
     },
     bip21:"koto",
@@ -228,6 +228,34 @@ const defaultCoins=[
     enableSegwit:false,
     confirmations:6,
     lib:"zec"
+  },{
+    coinScreenName:"リンゴ",
+    coinId:"ringo",
+    unit:"RIN",
+    unitEasy:"リンゴ",
+    bip44:{
+      coinType:2001,//not from slip44, if it is not in slip44, set from 2000
+      account:0
+    },
+    bip21:"ringo",
+    defaultFeeSatPerByte:200,//will implement dynamic fee
+    icon:require("../res/coins/rin.png"),
+    defaultAPIEndpoint:"http://namuyan.dip.jp/MultiLightBlockExplorer/apis.php?data=ringo/api",
+    network:{
+      messagePrefix: '\x16Ringo Signed Message:\n',
+      bip32: {
+        public: 0x0488b21e,
+        
+        private: 0x0488ade4
+      },
+      pubKeyHash: 60,
+      scriptHash: 85,
+      wif: 188,
+      isPoS:true
+    },
+    enableSegwit:false,
+    confirmations:6,
+    lib:"pos"
   }
 ]
 
