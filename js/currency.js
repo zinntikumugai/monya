@@ -8,6 +8,7 @@ const qs= require("qs")
 const errors = require("./errors")
 const coinUtil = require("./coinUtil")
 const storage = require("./storage")
+const zecLib = require("bitcoinjs-lib-zcash-monya")
 module.exports=class{
   
   constructor(opt){
@@ -28,6 +29,17 @@ module.exports=class{
     this.sound=opt.sound||""
     this.counterpartyEndpoint=opt.counterpartyEndpoint
     this.enableSegwit=opt.enableSegwit
+
+    switch(opt.lib){
+      case "zec":
+        this.lib=zecLib
+        break
+      case "pos":
+        this.lib=null
+        break
+      default:
+        this.lib=bcLib
+    }
     
     this.hdPubNode=null;
     this.lastPriceTime=0;
@@ -38,7 +50,7 @@ module.exports=class{
   }
   setPubSeedB58(seed){
     if(this.dummy){return}
-    this.hdPubNode = bcLib.HDNode.fromBase58(seed,this.network)
+    this.hdPubNode = this.lib.HDNode.fromBase58(seed,this.network)
   }
   pregenerateAddress(){
     this.getReceiveAddr()
@@ -88,26 +100,19 @@ module.exports=class{
     return this.getUtxos(this.getChangeAddr(),includeUnconfirmedFunds).then(d=>{
       let newestCnf=Infinity
       let newestAddr=""
-      let bal=new BigNumber(0)
-      let unconfirmed=new BigNumber(0)
       const res=d.utxos
       for(let i=0;i<res.length;i++){
         if(res[i].confirmations<newestCnf){
           newestCnf=res[i].confirmations
           newestAddr=res[i].address
         }
-        if(res[i].confirmations===0){
-          unconfirmed=unconfirmed.plus(res[i].value)
-        }else{
-          bal=bal.plus(res[i].value)
-        }
       }
       this.changeIndex=newestAddr?
         this.getIndexFromAddress(newestAddr)[1]%coinUtil.GAP_LIMIT_FOR_CHANGE
       :-1
       return {
-        balance:bal,
-        unconfirmed 
+        balance:d.balance,
+        unconfirmed:d.unconfirmed
       }
     })
   }
@@ -115,8 +120,8 @@ module.exports=class{
   getWholeBalanceOfThisAccount(){
     if(this.dummy){return Promise.resolve()}
     return Promise.all([this.getReceiveBalance(false),this.getChangeBalance(false)]).then(vals=>({
-      balance:vals[0].balance+vals[1].balance/100000000,
-      unconfirmed:vals[0].unconfirmed+vals[1].unconfirmed/100000000
+      balance:(new BigNumber(vals[0].balance)).add(vals[1].balance).toNumber(),
+      unconfirmed:(new BigNumber(vals[0].unconfirmed)).add(vals[1].unconfirmed).toNumber()
     }))
   }
   
@@ -134,10 +139,10 @@ module.exports=class{
     return promise.then(res=>{
       const v=res.data
       const utxos=[]
-      let bal=0;
-      let unconfirmed=0;
+      let bal=new BigNumber(0);
+      let unconfirmed=new BigNumber(0);
       for(let i=0;i<v.length;i++){
-        bal+=v[i].amount
+        bal=bal.add(v[i].amount)
         const u=v[i]
         if(includeUnconfirmedFunds||u.confirmations){
           utxos.push({
@@ -148,63 +153,75 @@ module.exports=class{
             confirmations:u.confirmations
           })
         }else{
-          unconfirmed+=u.amount
+          unconfirmed=unconfirmed.add(u.amount)
         }
       }
       return {
-        balance:bal,
+        balance:bal.toNumber(),
         utxos,
-        unconfirmed
+        unconfirmed:unconfirmed.toNumber()
       }
     })
   }
   
   getAddress(change,index){
     if(this.dummy){return}
-    if(!this.hdPubNode){throw new Error("HDNode isn't specified.")}
+    if(!this.hdPubNode){throw new errors.HDNodeNotFoundError()}
     
     if(typeof index !=="number"){
-      throw new Error("Please specify index")
+      throw new errors.InvalidIndexError()
     }
     const addrKey = (change|0).toString()+","+(index|0).toString()
     if(this.addresses[addrKey]){
       return this.addresses[addrKey]
     }else{
-      if(this.enableSegwit){
-        return (this.addresses[addrKey]=this.getSegwitAddress(change,index))
+      if(this.enableSegwit==="legacy"){
+        return (this.addresses[addrKey]=this.getSegwitLegacyAddress(change,index))
       }
       return (this.addresses[addrKey]=this.hdPubNode.derive(change).derive(index).getAddress())
     }
   }
   getPubKey(change,index){
     if(this.dummy){return}
-    if(!this.hdPubNode){throw new Error("HDNode isn't specified.")}
+    if(!this.hdPubNode){throw new errors.HDNodeNotFoundError()}
     
     if(typeof index !=="number"){
-      throw new Error("Please specify index")
+      throw new errors.InvalidIndexError()
     }
     return this.hdPubNode.derive(change).derive(index).keyPair.getPublicKeyBuffer().toString("hex")
   }
-  getSegwitAddress(change,index){
+  getSegwitNativeAddress(change,index){
     if(this.dummy){return}
-    if(!this.hdPubNode){throw new Error("HDNode isn't specified.")}
-
+    if(!this.hdPubNode){throw new errors.HDNodeNotFoundError()}
     if(typeof index !=="number"){
       index=this.receiveIndex
     }
     const keyPair=this.hdPubNode.derive(change).derive(index).keyPair
-    const witnessPubKey = bcLib.script.witnessPubKeyHash.output.encode(bcLib.crypto.hash160(keyPair.getPublicKeyBuffer()))
+    const witnessPubKey = this.lib.script.witnessPubKeyHash.output.encode(this.lib.crypto.hash160(keyPair.getPublicKeyBuffer()))
     
-    const address = bcLib.address.fromOutputScript(witnessPubKey,this.network)
+    const address = this.lib.address.fromOutputScript(witnessPubKey,this.network)
+    return address
+  }
+  getSegwitLegacyAddress(change,index){
+    if(this.dummy){return}
+    if(!this.hdPubNode){throw new errors.HDNodeNotFoundError()}
+    if(typeof index !=="number"){
+      index=this.receiveIndex
+    }
+    const keyPair=this.hdPubNode.derive(change).derive(index).keyPair
+    const redeemScript = this.lib.script.witnessPubKeyHash.output.encode(this.lib.crypto.hash160(keyPair.getPublicKeyBuffer()))
+    const scriptPubKey = bcLib.script.scriptHash.output.encode(bcLib.crypto.hash160(redeemScript))
+    
+    const address = this.lib.address.fromOutputScript(scriptPubKey,this.network)
     return address
   }
   seedToPubB58(privSeed){
     if(this.dummy){return}
     let node;
     if(typeof privSeed ==="string"){
-      node = bcLib.HDNode.fromBase58(privSeed,this.network)
+      node = this.lib.HDNode.fromBase58(privSeed,this.network)
     }else{
-      node = bcLib.HDNode.fromSeedBuffer(privSeed,this.network)
+      node = this.lib.HDNode.fromSeedBuffer(privSeed,this.network)
     }
     return node
       .deriveHardened(44)
@@ -216,9 +233,9 @@ module.exports=class{
     if(this.dummy){return}
     let node;
     if(typeof privSeed ==="string"){
-      node = bcLib.HDNode.fromBase58(privSeed,this.network)
+      node = this.lib.HDNode.fromBase58(privSeed,this.network)
     }else{
-      node = bcLib.HDNode.fromSeedBuffer(privSeed,this.network)
+      node = this.lib.HDNode.fromSeedBuffer(privSeed,this.network)
     }
     return node.toBase58()
   }
@@ -255,12 +272,12 @@ module.exports=class{
   }
   buildTransaction(option){
     if(this.dummy){return null;}
-    if(!this.hdPubNode){throw new Error("HDNode isn't specified.");}
+    if(!this.hdPubNode){throw new errors.HDNodeNotFoundError()}
     return new Promise((resolve, reject) => {
       const targets = option.targets
       const feeRate = option.feeRate
 
-      const txb = new bcLib.TransactionBuilder(this.network)
+      const txb = new this.lib.TransactionBuilder(this.network)
 
       let param
       if(option.utxoStr){
@@ -274,8 +291,8 @@ module.exports=class{
         const { inputs, outputs, fee } = coinSelect(res.utxos, targets, feeRate)
         if (!inputs || !outputs) throw new errors.NoSolutionError()
         inputs.forEach(input => {
-          txb.addInput(input.txId, input.vout)
-          
+          const vin = txb.addInput(input.txId, input.vout)
+          txb.inputs[vin].value=input.value
           path.push(this.getIndexFromAddress(input.address))
           
         })
@@ -292,6 +309,7 @@ module.exports=class{
     })
   }
   signTx(option){
+    if(!this.hdPubNode){throw new errors.HDNodeNotFoundError()}
     const entropyCipher = option.entropyCipher
     const password= option.password
     let txb=option.txBuilder
@@ -303,45 +321,50 @@ module.exports=class{
             coinUtil.decrypt(entropyCipher,password)
           )
         )
-    const node = bcLib.HDNode.fromSeedBuffer(seed,this.network)
+    const node = this.lib.HDNode.fromSeedBuffer(seed,this.network)
 
     if(!txb){
-      txb=coinUtil.buildBuilderfromPubKeyTx(bcLib.Transaction.fromHex(option.hash),this.network)
+      txb=coinUtil.buildBuilderfromPubKeyTx(this.lib.Transaction.fromHex(option.hash),this.network)
 
       for(let i=0;i<txb.inputs.length;i++){
-      txb.sign(i,node
-               .deriveHardened(44)
-               .deriveHardened(this.bip44.coinType)
-               .deriveHardened(this.bip44.account)
-               .derive(path[0][0]|0)
-               .derive(path[0][1]|0).keyPair
-              )
+        txb.sign(i,node
+                 .deriveHardened(44)
+                 .deriveHardened(this.bip44.coinType)
+                 .deriveHardened(this.bip44.account)
+                 .derive(path[0][0]|0)
+                 .derive(path[0][1]|0).keyPair
+                )
       }
       return txb.build()
     }
     
     for(let i=0;i<path.length;i++){
-      txb.sign(i,node
-               .deriveHardened(44)
-               .deriveHardened(this.bip44.coinType)
-               .deriveHardened(this.bip44.account)
-               .derive(path[i][0]|0)
-               .derive(path[i][1]|0).keyPair
-              )
+      const keyPair=node.deriveHardened(44)
+            .deriveHardened(this.bip44.coinType)
+            .deriveHardened(this.bip44.account)
+            .derive(path[i][0]|0)
+            .derive(path[i][1]|0).keyPair
+      if(this.enableSegwit==="legacy"){
+        const redeemScript = this.lib.script.witnessPubKeyHash.output.encode(this.lib.crypto.hash160(keyPair.getPublicKeyBuffer()))
+        txb.sign(i,keyPair,redeemScript,null,txb.inputs[i].value)
+      }else{
+        txb.sign(i,keyPair)
+      }
     }
     return txb.build()
     
   }
   signMessage(m,entropyCipher,password,path){
-    const kp=bcLib.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(
-          bip39.entropyToMnemonic(
-            coinUtil.decrypt(entropyCipher,password)
-          )
-        ),this.network)
-               .deriveHardened(44)
-               .deriveHardened(this.bip44.coinType)
-               .deriveHardened(this.bip44.account)
-               .derive(path[0]|0)
+    if(!this.hdPubNode){throw new errors.HDNodeNotFoundError()}
+    const kp=this.lib.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(
+      bip39.entropyToMnemonic(
+        coinUtil.decrypt(entropyCipher,password)
+      )
+    ),this.network)
+          .deriveHardened(44)
+          .deriveHardened(this.bip44.coinType)
+          .deriveHardened(this.bip44.account)
+          .derive(path[0]|0)
           .derive(path[1]|0).keyPair
     return bcMsg.sign(m,kp.d.toBuffer(32),kp.compressed,this.network.messagePrefix).toString("base64")
   }
@@ -489,9 +512,9 @@ module.exports=class{
     })
   }
   sweep(priv,addr,fee){
-    const keyPair=bcLib.ECPair.fromWIF(priv,this.network)
+    const keyPair=this.lib.ECPair.fromWIF(priv,this.network)
     return this.getUtxos([keyPair.getAddress()]).then(r=>{
-      const txb = new bcLib.TransactionBuilder(this.network)
+      const txb = new this.lib.TransactionBuilder(this.network)
       r.utxos.forEach((v,i)=>{
         txb.addInput(v.txId,v.vout)
       })
@@ -505,8 +528,8 @@ module.exports=class{
   }
   getBlocks(){
     return axios({
-        url:this.apiEndpoint+"/blocks?limit=3",
-        json:true,
+      url:this.apiEndpoint+"/blocks?limit=3",
+      json:true,
       method:"GET"}).then(r=>r.data.blocks)
   }
   changeApiEndpoint(index){

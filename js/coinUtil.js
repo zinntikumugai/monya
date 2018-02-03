@@ -1,5 +1,6 @@
 const currencyList = require("./currencyList.js")
 const bcLib = require('bitcoinjs-lib')
+const zecLib = require("bitcoinjs-lib-zcash-monya")
 const bip39 = require("bip39")
 const crypto = require('crypto');
 const storage = require("./storage")
@@ -15,14 +16,23 @@ exports.isValidAddress=(addr)=>{
     bcLib.address.fromBase58Check(addr)
     return true
   }catch(e){
-    return false
+    try {
+      zecLib.address.fromBase58Check(addr)
+      return true
+    } catch (e2) {
+      return false
+    }
   }
 };
 exports.getAddrVersion=(addr)=>{
   try{
     return bcLib.address.fromBase58Check(addr).version
   }catch(e){
-    return null
+    try {
+      return zecLib.address.fromBase58Check(addr).version
+    } catch (e2) {
+      return null
+    }
   }
 };
 exports.getPrice=(cryptoId,fiatId)=>{
@@ -54,8 +64,12 @@ exports.encrypt=(plain,password)=>{
   return cipher.update(plain, 'utf8', 'hex')+cipher.final('hex');
 }
 exports.decrypt=(cipher,password)=>{
+  try{
   const decipher = crypto.createDecipher('aes256', password);
-  return decipher.update(cipher, 'hex', 'utf8')+decipher.final('utf8');
+    return decipher.update(cipher, 'hex', 'utf8')+decipher.final('utf8');
+  }catch(e){
+    throw new errors.PasswordFailureError()
+  }
 }
 
 exports.makePairsAndEncrypt=(option)=>new Promise((resolve, reject) => {
@@ -110,26 +124,46 @@ exports.copy=data=>{
   if (window.cordova) {
     window.cordova.plugins.clipboard.copy(data)
   }else{
-    const temp = document.createElement('div');
-
+    const temp = document.createElement('textarea');
+    temp.setAttribute('readonly', '')
     temp.textContent = data;
-
+    
     const s = temp.style;
-    s.position = 'fixed';
-    s.left = '-100%';
-    s.userSelect="text"
+    s.position = 'absolute';
+    s.border="0";
+    s.padding="0";
+    s.margin="0";
+    s.left = '-999px';
+    s.top=(window.pageYOffset || document.documentElement.scrollTop)+"px"
 
     document.body.appendChild(temp);
-    document.getSelection().selectAllChildren(temp);
+    temp.select()
+    temp.setSelectionRange(0, temp.value.length);
 
     const result = document.execCommand('copy');
 
     document.body.removeChild(temp);
-    // true なら実行できている falseなら失敗か対応していないか
-    return result;
   }
 }
-
+exports.openUrl=(url)=>{
+  if(!window.cordova){
+    window.open(url,"_blank")
+  }
+  window.cordova.plugins.browsertab.isAvailable(
+    result=> {
+      if (result)  {
+        window.cordova.plugins.browsertab.openUrl(
+          url,
+          success=>{},
+          fail=>{
+            window.open(url,"_blank")
+          });
+      }
+    },
+    na=> {
+      window.open(url,"_blank")
+    });
+};
 exports.getBip21=(bip21Urn,address,query)=>{
   let queryStr="?"
   for(let v in query){
@@ -189,7 +223,7 @@ exports.parseUrl=url=>new Promise((resolve,reject)=>{
 })
 
 exports.proxyUrl=url=>{
-  if(window.cordova){
+  if(window.cordova&&window.cordova.platformId!=="browser"){
     return url
   }else{
     return 'https://zaif-status.herokuapp.com/proxy/?u='+encodeURIComponent(url)
@@ -238,7 +272,5 @@ exports.buildBuilderfromPubKeyTx=(transaction,network)=>{
   transaction.ins.forEach(function (txIn) {
     txb.addInput(txIn.hash, txIn.index,txIn.sequence,txIn.script)
   })
-  
-  
   return txb
 }

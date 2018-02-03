@@ -14,6 +14,16 @@ const defaultTitles=[{
   titleName:"Scam Girls",
   apiVer:2,
   apiEndpoint:"https://zaif-status.herokuapp.com/scamgirls/api"
+},{
+  cpCoinId:"btc",//Monaparty
+  titleId:"cp",
+  titleName:"Counterparty",
+  apiVer:false
+},{
+  cpCoinId:"tzny",//Monaparty
+  titleId:"zp",
+  titleName:"Zenyparty",
+  apiVer:false
 }]
 
 const titles={}

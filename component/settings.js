@@ -23,13 +23,13 @@ module.exports=require("./settings.html")({
           enabled:false,
           myUserId:""
         },
-        openInAppBrowser:false,
         monaparty:{
           enabled:true,
           bgClass:"sand"
         }
       },
-      monapartyTitleList:currencyList.monapartyTitle
+      monapartyTitleList:currencyList.monapartyTitle,
+      lang:"ja"
     }
   },
   methods:{
@@ -69,6 +69,9 @@ module.exports=require("./settings.html")({
         this.monappyNotExist=false
       }
     },
+    changeLang(){
+      storage.changeLang(this.lang)
+    },
     reset(){
       Promise.all(["keyPairs","labels","txLabels","settings","customCoins","addresses","zaifPayInvoice"].map(v=>storage.set(v,null))).then(()=>{
         this.$store.commit("deleteEntropy")
@@ -81,6 +84,9 @@ module.exports=require("./settings.html")({
     this.isWebView=this.$ons.isWebView()
     storage.get("settings").then(d=>{
       Object.assign(this.d,d)
+    })
+    storage.getLang().then(r=>{
+      this.lang=r
     })
   }
 })

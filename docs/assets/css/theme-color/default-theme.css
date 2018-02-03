@@ -30,8 +30,8 @@ Author URI : http://www.markups.io/
 	color: #FBC02D;
 }
 
-.mu-social-media a:hover,
-.mu-social-media a:focus,
+#mu-social-media a:hover,
+#mu-social-media a:focus,
 .mu-contact-right-single .mu-icon {
 	border: 1px solid #FBC02D;
 	color: #FBC02D;
@@ -53,7 +53,7 @@ Author URI : http://www.markups.io/
 .mu-title-dot::after,
 .mu-feature-btn,
 .mu-video-overlay {
-	background-color: #FBC02D;
+	background-color: #ffeb47;
 }
 .mu-feature-content-right .media:hover {
 	border-bottom: 1px solid #FBC02D;

@@ -11,3 +11,6 @@ npm-debug.log*
 .DS_Store
 .*
 cordovaProj/platforms/android/release/
+cordovaProj/node_modules
+cordovaProj/platforms
+cordovaProj/plugins
