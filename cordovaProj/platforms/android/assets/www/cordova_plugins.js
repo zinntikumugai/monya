@@ -1,6 +1,14 @@
 cordova.define('cordova/plugin_list', function(require, exports, module) {
 module.exports = [
   {
+    "id": "cordova-clipboard.Clipboard",
+    "file": "plugins/cordova-clipboard/www/clipboard.js",
+    "pluginId": "cordova-clipboard",
+    "clobbers": [
+      "cordova.plugins.clipboard"
+    ]
+  },
+  {
     "id": "cordova-plugin-customurlscheme.LaunchMyApp",
     "file": "plugins/cordova-plugin-customurlscheme/www/android/LaunchMyApp.js",
     "pluginId": "cordova-plugin-customurlscheme",
@@ -56,19 +64,12 @@ module.exports = [
     "clobbers": [
       "window.StatusBar"
     ]
-  },
-  {
-    "id": "cordova-clipboard.Clipboard",
-    "file": "plugins/cordova-clipboard/www/clipboard.js",
-    "pluginId": "cordova-clipboard",
-    "clobbers": [
-      "cordova.plugins.clipboard"
-    ]
   }
 ];
 module.exports.metadata = 
 // TOP OF METADATA
 {
+  "cordova-clipboard": "1.1.1",
   "cordova-plugin-customurlscheme": "4.3.0",
   "cordova-plugin-inappbrowser": "2.0.1",
   "cordova-plugin-keychain-touch-id": "3.2.1",
@@ -76,8 +77,7 @@ module.exports.metadata =
   "cordova-plugin-qrscanner-monya": "2.5.4",
   "cordova-plugin-splashscreen": "4.1.0",
   "cordova-plugin-statusbar": "2.4.1",
-  "cordova-plugin-whitelist": "1.3.3",
-  "cordova-clipboard": "1.1.1"
+  "cordova-plugin-whitelist": "1.3.3"
 };
 // BOTTOM OF METADATA
 });

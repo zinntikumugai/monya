@@ -170,13 +170,13 @@ android {
     }
 
     defaultConfig {
-        versionCode 10209
+        versionCode 102010
         applicationId privateHelpers.extractStringFromManifest("package")
 
         if (cdvMinSdkVersion != null) {
             minSdkVersion cdvMinSdkVersion
         }
-        versionName '1.2.9'
+        versionName '1.2.10'
     }
 
     lintOptions {

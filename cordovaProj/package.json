@@ -11,7 +11,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "com.danielsogl.cordova.clipboard": "~1.0.2",
-    "cordova-android": "^6.4.0",
+    "cordova-android": "^6.3.0",
     "cordova-clipboard": "^1.1.1",
     "cordova-ios": "^4.5.4",
     "cordova-plugin-compat": "^1.2.0",
