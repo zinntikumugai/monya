@@ -64,6 +64,14 @@ module.exports = [
     "clobbers": [
       "window.StatusBar"
     ]
+  },
+  {
+    "id": "cordova-plugin-browsertab.BrowserTab",
+    "file": "plugins/cordova-plugin-browsertab/www/browsertab.js",
+    "pluginId": "cordova-plugin-browsertab",
+    "clobbers": [
+      "cordova.plugins.browsertab"
+    ]
   }
 ];
 module.exports.metadata = 
@@ -77,7 +85,8 @@ module.exports.metadata =
   "cordova-plugin-qrscanner-monya": "2.5.4",
   "cordova-plugin-splashscreen": "4.1.0",
   "cordova-plugin-statusbar": "2.4.1",
-  "cordova-plugin-whitelist": "1.3.3"
+  "cordova-plugin-whitelist": "1.3.3",
+  "cordova-plugin-browsertab": "0.2.0"
 };
 // BOTTOM OF METADATA
 });
