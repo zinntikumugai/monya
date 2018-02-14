@@ -151,23 +151,16 @@ Monapartyの安定性向上
 共有ボタン
 Bitcoin Cash,Bitcoin Segwitの追加
 コイン追加を無効化
-App Storeルールに違反していると思われる、時価総額が小さい暗号通貨を削除
+App Storeルールに違反していると思われる、時価総額が小さい暗号通貨を削除。
+法的に問題が見つからないコインのみに限定。
 
-## Appleに質問
+## メモ(20180214)
 
-Which cryptocurrency do you reject?
-We have no idea about it.
-Could you provide a criteria of allowed cryptocurrency?
-According to App Store審査ガイドライン, cryptocurrency must be
+We decided to remove Monacoin Testnet, Fujicoin. We left coins which we conclude is no problem.
+Also, following apps supports cryptocurrency that we support.
 
-1. アプリケーションが使用される地域の法的要件すべてに準拠している限り、
-2. 認可されている仮想通貨（ビットコイン、ドージコインなど）の送金を行うアプリケーションを提供することは許可されます。
-3. イニシャルコインオファリング（ICO）、暗号通貨の先物取引、その他の暗号証券や準証券による取引を行うアプリケーションは、既存の銀行、証券会社、先物取引業者（FCM）、またはその他の承認された金融機関のみが提供でき、適用されるすべての法令に準拠している必要があります。
-
-All of currencies we support meet these rules. 
-
-This app is used in only Japan. These coins are legitimate in Japan. If they were illegal, Japanese cryptocurrency community would be regulated now. And this app isn't for ICO, future trading and other cryptosecurities. Thus, there is no reason that these coins are rejected.
-
-For now, We decided to remove Monacoin Testnet, Fujicoin. Please approve at least present coins.
-
-Sincerely yours
+Bitcoin: https://itunes.apple.com/us/app/bitcoin-wallet-by-bitcoin-com/id1252903728
+Litecoin: https://itunes.apple.com/us/app/loafwallet-litecoin-wallet/id1119332592
+BitZeny: https://itunes.apple.com/us/app/poolviewer/id1336413220
+Bitcoin Cash: https://itunes.apple.com/us/app/bitcoin-cash-wallet/id1268542249
+Monacoin: https://itunes.apple.com/jp/app/仮想通貨モナーコイン-mona-情報まとめニュースアプリ/id1339441185
