@@ -9,7 +9,7 @@
       <v-ons-list-item modifier="tappable chevron" @click="goToEditOrder"><div class="center">メニューの管理</div></v-ons-list-item>
       <v-ons-list-item modifier="tappable chevron" @click="goToSweep"><div class="center">スイープ</div></v-ons-list-item>
       <v-ons-list-item modifier="tappable chevron" @click="goToImportExport"><div class="center">インポート/エクスポート</div></v-ons-list-item>
-      
+
 
       <v-ons-list-header>お金</v-ons-list-header>
       <v-ons-list-item>
@@ -64,12 +64,12 @@
       <div v-show="d.zaifPay.enabled">
       <v-ons-list-item><div class="center">API Key</div>
         <div class="right">
-          <v-ons-input placeholder="Type here" @change="save" v-model="d.zaifPay.apiKey"></v-ons-input>
+          <v-ons-input placeholder="API Keyを入力してください。" @change="save" v-model="d.zaifPay.apiKey"></v-ons-input>
         </div>
       </v-ons-list-item>
-      <v-ons-list-item><div class="center">Secret Key</div>
+      <v-ons-list-item><div class="center">API Secret Key</div>
         <div class="right">
-          <v-ons-input placeholder="Raw Secret Key" @change="save" v-model="d.zaifPay.secret"></v-ons-input>
+          <v-ons-input placeholder="API Secret Keyを入力してください。" @change="save" v-model="d.zaifPay.secret"></v-ons-input>
         </div>
       </v-ons-list-item>
       </div>
@@ -83,7 +83,7 @@
           <div class="center">あなたのMonappy ID</div>
           <div class="right"><span class="atmark">@</span><v-ons-input v-model="d.monappy.myUserId" placeholder="Monappy Id" @change="changeMonappy" @input="monappyNotExist=false" :class="{monappyNotExist:monappyNotExist}"></v-ons-input></div>
         </v-ons-list-item>
-        
+
       </div>
       <v-ons-list-header>Monaparty</v-ons-list-header>
       <v-ons-list-item>
