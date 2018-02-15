@@ -12,7 +12,7 @@ module.exports=require("./home.html")({
   },
   methods:{
     qr(){
-      
+
       this.$emit("push",require("./qrcode.js"))
     },
     load(done){
@@ -33,7 +33,7 @@ module.exports=require("./home.html")({
           price:0,
           icon:cur.icon
         }
-        
+
         promises.push(cur.getWholeBalanceOfThisAccount()
           .then(res=>{
             obj.balance=res.balance
@@ -56,9 +56,6 @@ module.exports=require("./home.html")({
         clearTimeout(timer)
         typeof(done)==='function'&&done()
       })
-    },
-    goToManageCoin(){
-      this.$emit("push",require("./manageCoin.js"))
     },
     receive(){
       this.$emit("push",require("./receive.js"))
